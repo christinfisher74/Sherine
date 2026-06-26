@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>Shireen — Daily Reset</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    :root {
+      --bg: #F2EFE9; --card: #FFFFFF; --dark: #1E2A22; --mid: #5C6B60;
+      --light: #9AAF9D; --accent: #3B6B8A; --accent-light: #D6E8F2;
+      --green: #4E8C6F; --green-light: #D9EFE4; --yellow: #C9943A;
+      --yellow-light: #FDF1DC; --red: #B85C4A; --rule: #E2DDD6; --radius: 14px;
+    }
+    body { background: var(--bg); font-family: -apple-system, 'Helvetica Neue', sans-serif; color: var(--dark); min-height: 100vh; }
+
+    .header { background: var(--dark); padding: 18px 18px 14px; }
+    .header h1 { font-size: 22px; font-weight: 700; color: #fff; }
+    .header p { font-size: 12px; color: var(--light); margin-top: 2px; }
+
+    .tabs { display: flex; background: var(--dark); padding: 0 10px 12px; gap: 6px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .tabs::-webkit-scrollbar { display: none; }
+
+    .tab-btn {
+      flex-shrink: 0;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--light);
+      background: rgba(255,255,255,0.1);
+      border: none;
+      cursor: pointer;
+      -webkit-appearance: none;
+      appearance: none;
+      outline: none;
+      touch-action: manipulation;
+    }
+    .tab-btn.active { background: var(--accent); color: #fff; }
+
+    .page { display: none; padding: 14px 14px 80px; }
+    .page.active { display: block; }
+
+    .card { background: var(--card); border-radius: var(--radius); padding: 16px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+    .card-title { font-size: 12px; font-weight: 700; color: var(--mid); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 12px; }
+
+    .coach-note { background: var(--accent-light); border-left: 3px solid var(--accent); border-radius: 0 10px 10px 0; padding: 12px 14px; margin-bottom: 12px; }
+    .coach-note strong { display: block; font-size: 11px; color: var(--accent); font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 4px; }
+    .coach-note p { font-size: 13.5px; color: var(--dark); line-height: 1.5; }
+
+    .check-row { display: flex; align-items: flex-start; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--rule); cursor: pointer; touch-action: manipulation; }
+    .check-row:last-child { border-bottom: none; }
+    .check-box { width: 24px; height: 24px; border-radius: 6px; border: 2px solid var(--rule); flex-shrink: 0; display: flex; align-items: center; justify-content: center; margin-top: 1px; transition: all 0.15s; }
+    .check-box.on { background: var(--green); border-color: var(--green); }
+    .check-box.on::after { content: '✓'; color: white; font-size: 14px; font-weight: 700; }
+    .check-label strong { display: block; font-size: 15px; font-weight: 600; line-height: 1.3; }
+    .check-label span { display: block; font-size: 12.5px; color: var(--mid); margin-top: 2px; line-height: 1.4; }
+    .check-row.done .check-label strong { color: var(--light); text-decoration: line-through; }
+
+    .progress-wrap { background: var(--rule); border-radius: 10px; height: 8px; margin: 14px 0 4px; overflow: hidden; }
+    .progress-fill { height: 100%; border-radius: 10px; background: var(--green); transition: width 0.3s; }
+    .progress-lbl { font-size: 12px; color: var(--mid); text-align: right; }
+
+    .def-box { background: var(--rule); border-radius: 10px; padding: 12px 14px; margin-bottom: 10px; }
+    .def-box h4 { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+    .def-box p { font-size: 13px; color: var(--mid); line-height: 1.5; }
+
+    .btn { background: var(--accent); color: white; border: none; border-radius: 10px; padding: 13px; font-size: 15px; font-weight: 600; cursor: pointer; width: 100%; margin-top: 10px; touch-action: manipulation; -webkit-appearance: none; }
+    .btn.sec { background: var(--rule); color: var(--dark); }
+    .btn-row { display: flex; gap: 10px; }
+    .btn-row .btn { margin-top: 0; }
+
+    /* BREATHE */
+    .breath-wrap { text-align: center; padding: 10px 0; }
+    .breath-circle { width: 140px; height: 140px; border-radius: 50%; background: var(--accent-light); border: 3px solid var(--accent); margin: 0 auto 16px; display: flex; align-items: center; justify-content: center; flex-direction: column; transition: transform 0.5s, background 0.5s, border-color 0.5s; cursor: pointer; touch-action: manipulation; }
+    .breath-circle.inhale { transform: scale(1.15); }
+    .breath-circle.hold { background: var(--yellow-light); border-color: var(--yellow); }
+    .breath-circle.exhale { transform: scale(0.9); background: var(--green-light); border-color: var(--green); }
+    .breath-phase { font-size: 15px; font-weight: 700; }
+    .breath-num { font-size: 30px; font-weight: 700; color: var(--accent); }
+    .breath-hint { font-size: 13px; color: var(--mid); margin-bottom: 14px; line-height: 1.5; }
+    .breath-rounds { font-size: 13px; color: var(--mid); margin-top: 10px; min-height: 20px; }
+
+    /* MOVE */
+    .move-item { padding: 13px 0; border-bottom: 1px solid var(--rule); }
+    .move-item:last-of-type { border-bottom: none; }
+    .move-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px; }
+    .move-name { font-size: 15px; font-weight: 600; }
+    .badge { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 20px; text-transform: uppercase; }
+    .b-green { background: var(--green-light); color: var(--green); }
+    .b-blue { background: var(--accent-light); color: var(--accent); }
+    .b-yellow { background: var(--yellow-light); color: var(--yellow); }
+    .move-detail { font-size: 13px; color: var(--mid); line-height: 1.4; }
+    .move-cue { font-size: 12px; color: var(--accent); font-style: italic; margin-top: 3px; }
+    .move-done { display: flex; align-items: center; gap: 8px; margin-top: 10px; cursor: pointer; touch-action: manipulation; }
+    .mini-box { width: 20px; height: 20px; border-radius: 5px; border: 2px solid var(--rule); flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+    .mini-box.on { background: var(--green); border-color: var(--green); }
+    .mini-box.on::after { content: '✓'; color: white; font-size: 11px; font-weight: 700; }
+    .move-done span { font-size: 13px; font-weight: 600; color: var(--mid); }
+
+    /* WALK */
+    .timer-big { font-size: 56px; font-weight: 700; text-align: center; letter-spacing: -2px; font-variant-numeric: tabular-nums; margin: 10px 0 4px; }
+    .timer-sub { font-size: 13px; color: var(--mid); text-align: center; margin-bottom: 16px; }
+    .timer-goal { background: var(--green-light); border-radius: 10px; padding: 10px 14px; font-size: 13px; color: var(--green); font-weight: 600; margin-bottom: 14px; text-align: center; }
+
+    /* LOG */
+    .streak-bar { background: var(--dark); border-radius: 12px; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .streak-num { font-size: 32px; font-weight: 700; color: #fff; }
+    .streak-lbl { font-size: 12px; color: var(--light); }
+    .week-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 6px; margin-bottom: 14px; }
+    .day-cell { text-align: center; }
+    .day-lbl { font-size: 10px; color: var(--mid); font-weight: 600; text-transform: uppercase; margin-bottom: 4px; }
+    .day-dot { width: 32px; height: 32px; border-radius: 50%; background: var(--rule); margin: 0 auto; display: flex; align-items: center; justify-content: center; font-size: 13px; }
+    .day-dot.done { background: var(--green); color: white; }
+    .day-dot.today { border: 2px solid var(--accent); }
+
+    /* SCHEDULE */
+    .cal-link { display: block; text-decoration: none; }
+    input[type="date"] { width: 100%; padding: 11px 12px; border: 1.5px solid var(--rule); border-radius: 10px; font-size: 15px; color: var(--dark); background: var(--bg); margin-bottom: 10px; -webkit-appearance: none; }
+    .session-row { padding: 10px 0; border-bottom: 1px solid var(--rule); display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
+    .session-del { font-size: 20px; color: var(--mid); cursor: pointer; touch-action: manipulation; padding: 0 4px; }
+
+    /* CHECK-IN */
+    .feel-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+    .feel-btn { padding: 8px 14px; border-radius: 20px; border: 1.5px solid var(--rule); background: var(--bg); font-size: 13px; font-weight: 600; color: var(--dark); cursor: pointer; touch-action: manipulation; -webkit-appearance: none; transition: all 0.15s; }
+    .feel-btn.on { background: var(--accent); border-color: var(--accent); color: white; }
+    textarea { width: 100%; padding: 11px 12px; border: 1.5px solid var(--rule); border-radius: 10px; font-size: 14px; color: var(--dark); background: var(--bg); min-height: 75px; resize: none; font-family: inherit; line-height: 1.5; -webkit-appearance: none; margin-bottom: 14px; }
+    .fi-label { font-size: 12px; font-weight: 700; color: var(--mid); text-transform: uppercase; letter-spacing: 0.6px; display: block; margin-bottom: 7px; }
+    .past-entry { padding: 14px 0; border-bottom: 1px solid var(--rule); }
+    .past-week { font-weight: 700; font-size: 13px; margin-bottom: 7px; }
+    .past-section { margin-bottom: 5px; }
+    .past-section-lbl { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+    .past-section-txt { font-size: 13px; color: var(--dark); margin-top: 1px; }
+    .lbl-green { color: var(--green); }
+    .lbl-red { color: var(--red); }
+    .lbl-blue { color: var(--accent); }
+    .reset-btn { background: none; border: 1px solid var(--rule); border-radius: 8px; padding: 8px 14px; font-size: 13px; color: var(--mid); cursor: pointer; margin-top: 10px; touch-action: manipulation; }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Daily Reset</h1>
+  <p id="hdrDate">Shireen · Feminine Strength Co.</p>
+</div>
+
+<div class="tabs" id="tabBar">
+  <button class="tab-btn active" data-tab="today">Today</button>
+  <button class="tab-btn" data-tab="breathe">Breathe</button>
+  <button class="tab-btn" data-tab="move">Move</button>
+  <button class="tab-btn" data-tab="walk">Walk</button>
+  <button class="tab-btn" data-tab="log">My Log</button>
+  <button class="tab-btn" data-tab="schedule">Schedule</button>
+  <button class="tab-btn" data-tab="checkin">Check-In</button>
+</div>
+
+<!-- TODAY -->
+<div class="page active" id="page-today">
+  <div class="coach-note">
+    <strong>From Christin</strong>
+    <p>This app is your daily anchor. Small inputs that support your body and nervous system — on the days you can and in the ways you can.</p>
+  </div>
+  <div class="card">
+    <div class="card-title">Today's Checklist <span id="emojiToday" style="float:right;font-size:18px;font-weight:400;letter-spacing:0;text-transform:none">🌿</span></div>
+    <div class="check-row" id="cr-water" data-key="water">
+      <div class="check-box" id="cb-water"></div>
+      <div class="check-label"><strong>Drink water first thing</strong><span>Before coffee. Before your phone. 8–12oz minimum.</span></div>
+    </div>
+    <div class="check-row" id="cr-vitamins" data-key="vitamins">
+      <div class="check-box" id="cb-vitamins"></div>
+      <div class="check-label"><strong>Take your D3/K2 + Magnesium</strong><span>D3 drops in the morning. Magnesium drops in the evening.</span></div>
+    </div>
+    <div class="check-row" id="cr-meals" data-key="meals">
+      <div class="check-box" id="cb-meals"></div>
+      <div class="check-label"><strong>Eat 3 real meals</strong><span>Protein at every meal. Not perfect — just present.</span></div>
+    </div>
+    <div class="check-row" id="cr-breathe" data-key="breathe">
+      <div class="check-box" id="cb-breathe"></div>
+      <div class="check-label"><strong>Do one breathing reset</strong><span>Especially if you wake up panicked. See the Breathe tab.</span></div>
+    </div>
+    <div class="check-row" id="cr-move" data-key="move">
+      <div class="check-box" id="cb-move"></div>
+      <div class="check-label"><strong>Do one movement</strong><span>Walk, floor work, or stretching. See Move tab. The yard doesn't count 😊</span></div>
+    </div>
+    <div class="check-row" id="cr-hydration" data-key="hydration">
+      <div class="check-box" id="cb-hydration"></div>
+      <div class="check-label"><strong>Hit your water goal</strong><span>80–100oz today.</span></div>
+    </div>
+    <div class="progress-wrap"><div class="progress-fill" id="progFill" style="width:0%"></div></div>
+    <div class="progress-lbl" id="progLbl">0 of 6 done</div>
+  </div>
+  <div class="card">
+    <div class="card-title">What Movement Actually Means</div>
+    <div class="def-box"><h4>✅ Counts</h4><p>Walking pad · Floor bridges · Bird dogs · Wall push-ups · Knee push-ups · Stretching · Bodyweight squats</p></div>
+    <div class="def-box"><h4>❌ Doesn't count as exercise</h4><p>Taking the dog in the yard · Laundry · Moving furniture · Vacuuming</p></div>
+  </div>
+  <button class="reset-btn" id="resetBtn">Reset today's checklist</button>
+</div>
+
+<!-- BREATHE -->
+<div class="page" id="page-breathe">
+  <div class="coach-note">
+    <strong>From Christin</strong>
+    <p>When you wake up panicked at 3am — this is the tool. Box breathing tells your nervous system it's safe to calm down.</p>
+  </div>
+  <div class="card">
+    <div class="card-title">Box Breathing</div>
+    <p class="breath-hint">Inhale 4 · Hold 4 · Exhale 4 · Hold 4. Repeat 4–6 rounds. Tap the circle to start.</p>
+    <div class="breath-wrap">
+      <div class="breath-circle" id="breathCircle">
+        <div class="breath-phase" id="bPhase">Tap to start</div>
+        <div class="breath-num" id="bNum"></div>
+      </div>
+      <div class="breath-rounds" id="bRounds"></div>
+    </div>
+    <div class="btn-row" style="margin-top:14px">
+      <button class="btn sec" id="breathStopBtn">Stop</button>
+      <button class="btn" id="breathDoneBtn">Mark Complete ✓</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Why This Works</div>
+    <div class="def-box"><h4>The 3–4am wake-up</h4><p>Histamine peaks at night and prevents your nervous system from downshifting. Box breathing activates your vagus nerve and overrides the panic signal.</p></div>
+    <div class="def-box"><h4>When to use it</h4><p>3am panic · Before getting out of bed · Any moment you feel overwhelmed · Before sleep</p></div>
+  </div>
+</div>
+
+<!-- MOVE -->
+<div class="page" id="page-move">
+  <div class="coach-note">
+    <strong>From Christin</strong>
+    <p>Pick one section. Do it in your living room. That's a win.</p>
+  </div>
+  <div class="card">
+    <div class="card-title">Stretching · 5–10 min</div>
+    <div class="move-item"><div class="move-top"><span class="move-name">Cat/Cow</span><span class="badge b-blue">x 8 slow</span></div><div class="move-detail">On hands and knees. Arch and round your spine.</div><div class="move-cue">Breathe through every rep.</div></div>
+    <div class="move-item"><div class="move-top"><span class="move-name">Child's Pose</span><span class="badge b-blue">30 sec</span></div><div class="move-detail">Sit back toward heels, arms stretched forward.</div><div class="move-cue">Let your body melt into the floor.</div></div>
+    <div class="move-item"><div class="move-top"><span class="move-name">Hip Flexor Stretch</span><span class="badge b-blue">20 sec each</span></div><div class="move-detail">Half kneeling. Shift forward gently.</div><div class="move-cue">Feel the front of the hip.</div></div>
+    <div class="move-item"><div class="move-top"><span class="move-name">Seated Spinal Twist</span><span class="badge b-blue">20 sec each</span></div><div class="move-detail">Cross one leg, twist toward it.</div><div class="move-cue">Exhale as you twist.</div></div>
+    <div class="move-done" data-mkey="stretch"><div class="mini-box" id="mc-stretch"></div><span>Done with stretching ✓</span></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Floor Work · 2–3 rounds</div>
+    <div class="move-item"><div class="move-top"><span class="move-name">Glute Bridge</span><span class="badge b-green">x 12</span></div><div class="move-detail">Lie on back, knees bent. Drive hips up.</div><div class="move-cue">2-second squeeze at the top.</div></div>
+    <div class="move-item"><div class="move-top"><span class="move-name">Bird Dog</span><span class="badge b-green">x 8 each</span></div><div class="move-detail">Hands and knees. Extend opposite arm and leg.</div><div class="move-cue">Keep hips level. Slow is the point.</div></div>
+    <div class="move-item"><div class="move-top"><span class="move-name">Dead Bug</span><span class="badge b-green">x 8 each</span></div><div class="move-detail">Lie on back. Lower opposite arm and leg.</div><div class="move-cue">Low back stays flat the entire time.</div></div>
+    <div class="move-item"><div class="move-top"><span class="move-name">Knee Push-Up</span><span class="badge b-green">x 8–10</span></div><div class="move-detail">Hands wide, knees on floor.</div><div class="move-cue">Body straight from knees to head.</div></div>
+    <div class="move-item"><div class="move-top"><span class="move-name">Wall Push-Up</span><span class="badge b-green">x 10–12</span></div><div class="move-detail">Hands on wall at chest height.</div><div class="move-cue">Start here if knee push-ups feel like too much.</div></div>
+    <div class="move-done" data-mkey="floor"><div class="mini-box" id="mc-floor"></div><span>Done with floor work ✓</span></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Standing · Optional</div>
+    <div class="move-item"><div class="move-top"><span class="move-name">Bodyweight Squat</span><span class="badge b-yellow">x 10–12</span></div><div class="move-detail">Feet shoulder-width. Sit back like there's a chair.</div><div class="move-cue">Don't lock knees at the top.</div></div>
+    <div class="move-item"><div class="move-top"><span class="move-name">Standing March</span><span class="badge b-yellow">x 20 steps</span></div><div class="move-detail">Lift knees to hip height, slow.</div><div class="move-cue">Hold a wall if needed.</div></div>
+    <div class="move-done" data-mkey="standing"><div class="mini-box" id="mc-standing"></div><span>Done with standing ✓</span></div>
+  </div>
+</div>
+
+<!-- WALK -->
+<div class="page" id="page-walk">
+  <div class="coach-note">
+    <strong>From Christin</strong>
+    <p>Unbox it. Set it up. Walk on it once. 10 minutes. Watch something you love. That's the whole ask right now.</p>
+  </div>
+  <div class="card">
+    <div class="card-title">Walking Pad Timer</div>
+    <div class="timer-goal">🎯 Goal: 10 minutes minimum</div>
+    <div class="timer-big" id="timerDisp">10:00</div>
+    <div class="timer-sub" id="timerSub">Tap Start when you step on</div>
+    <div class="btn-row">
+      <button class="btn sec" id="timerResetBtn">Reset</button>
+      <button class="btn" id="timerStartBtn">Start</button>
+    </div>
+    <div class="move-done" style="margin-top:14px" data-mkey="walk"><div class="mini-box" id="mc-walk"></div><span>Walk done for today ✓</span></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Walking Levels</div>
+    <div class="move-item"><div class="move-top"><span class="move-name">Level 1 — Right Now</span><span class="badge b-blue">Where you are</span></div><div class="move-detail">10 minutes. Any pace. Something on to watch. Just step on and go.</div></div>
+    <div class="move-item"><div class="move-top"><span class="move-name">Level 2 — When ready</span><span class="badge b-yellow">Next step</span></div><div class="move-detail">15–20 minutes. 3x per week.</div></div>
+    <div class="move-item"><div class="move-top"><span class="move-name">Level 3 — Building</span><span class="badge b-green">Future goal</span></div><div class="move-detail">30 minutes daily. Add incline when easy.</div></div>
+  </div>
+</div>
+
+<!-- LOG -->
+<div class="page" id="page-log">
+  <div class="streak-bar">
+    <div><div class="streak-num" id="streakNum">0</div><div class="streak-lbl">day streak</div></div>
+    <div style="font-size:32px">🔥</div>
+  </div>
+  <div class="card">
+    <div class="card-title">This Week</div>
+    <div class="week-grid" id="weekGrid"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Weekly Summary</div>
+    <div id="weeklySummary" style="font-size:14px;color:var(--mid);line-height:1.6"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Your Cycle Phase</div>
+    <div id="cyclePhase" style="font-size:14px;line-height:1.6"></div>
+  </div>
+</div>
+
+<!-- SCHEDULE -->
+<div class="page" id="page-schedule">
+  <div class="coach-note">
+    <strong>From Christin</strong>
+    <p>A session that isn't scheduled isn't happening. Pick a time and commit to it.</p>
+  </div>
+  <div class="card">
+    <div class="card-title">Book Your Next Session</div>
+    <p style="font-size:14px;color:var(--mid);line-height:1.5;margin-bottom:14px">Every other week, 30 minutes. Tap below to book directly.</p>
+    <a class="cal-link" href="https://calendly.com/christinfisher74/45-min-personal-training-session" target="_blank"><button class="btn" style="margin-top:0">Open Calendly 📅</button></a>
+  </div>
+  <div class="card">
+    <div class="card-title">My Sessions</div>
+    <div id="sessionList" style="font-size:14px;color:var(--mid);margin-bottom:14px">No sessions logged yet.</div>
+    <label class="fi-label">Log a session date</label>
+    <input type="date" id="sessionDate" />
+    <button class="btn" id="addSessionBtn" style="margin-top:0">Add Session ✓</button>
+  </div>
+  <div class="card">
+    <div class="card-title">Between Sessions</div>
+    <div class="def-box"><h4>Session weeks</h4><p>Show up. 30 minutes. Nothing to prepare.</p></div>
+    <div class="def-box"><h4>Off weeks</h4><p>Daily checklist. One movement. Check-In tab at end of week.</p></div>
+    <div class="def-box"><h4>Hard weeks</h4><p>Breathe tab. Water. One meal at a time. That's enough.</p></div>
+  </div>
+</div>
+
+<!-- CHECK-IN -->
+<div class="page" id="page-checkin">
+  <div class="coach-note">
+    <strong>From Christin</strong>
+    <p>Fill this out once a week. Sunday works well. Doesn't have to be long. Just honest.</p>
+  </div>
+  <div class="card">
+    <div class="card-title">Weekly Check-In · <span id="ciWeekLbl" style="font-weight:400;text-transform:none;letter-spacing:0;font-size:13px;color:var(--mid)"></span></div>
+
+    <label class="fi-label">How are you feeling overall?</label>
+    <div class="feel-row" id="feelRow">
+      <button class="feel-btn" data-grp="feeling" data-val="rough">😔 Rough</button>
+      <button class="feel-btn" data-grp="feeling" data-val="okay">😐 Okay</button>
+      <button class="feel-btn" data-grp="feeling" data-val="good">🙂 Good</button>
+      <button class="feel-btn" data-grp="feeling" data-val="great">😊 Really good</button>
+    </div>
+
+    <label class="fi-label">What went well?</label>
+    <textarea id="ciWell" placeholder="Even small things count..."></textarea>
+
+    <label class="fi-label">What was challenging?</label>
+    <textarea id="ciHard" placeholder="Be honest. No judgment here."></textarea>
+
+    <label class="fi-label">Energy this week</label>
+    <div class="feel-row">
+      <button class="feel-btn" data-grp="energy" data-val="low">🔴 Low</button>
+      <button class="feel-btn" data-grp="energy" data-val="mixed">🟡 Mixed</button>
+      <button class="feel-btn" data-grp="energy" data-val="steady">🟢 Steady</button>
+      <button class="feel-btn" data-grp="energy" data-val="high">⚡ High</button>
+    </div>
+
+    <label class="fi-label">Sleep this week</label>
+    <div class="feel-row">
+      <button class="feel-btn" data-grp="sleep" data-val="poor">😴 Poor</button>
+      <button class="feel-btn" data-grp="sleep" data-val="okay">😐 Okay</button>
+      <button class="feel-btn" data-grp="sleep" data-val="good">😌 Good</button>
+    </div>
+
+    <label class="fi-label">One goal for next week</label>
+    <textarea id="ciGoal" placeholder="Keep it small and specific..."></textarea>
+
+    <label class="fi-label">Anything else on your mind?</label>
+    <textarea id="ciNotes" placeholder="Optional. This is just for you." style="margin-bottom:0"></textarea>
+
+    <button class="btn" id="saveCheckinBtn" style="margin-top:14px">Save Check-In ✓</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Past Check-Ins</div>
+    <div id="pastCheckins" style="font-size:14px;color:var(--mid)">No check-ins saved yet.</div>
+  </div>
+</div>
+
+<script>
+(function() {
+  // ── STORAGE ──────────────────────────────────────────────────────────────
+  var PREFIX = 'sh_';
+  function save(k, v) { try { localStorage.setItem(PREFIX+k, JSON.stringify(v)); } catch(e){} }
+  function load(k, fb) { try { var v = localStorage.getItem(PREFIX+k); return v !== null ? JSON.parse(v) : fb; } catch(e){ return fb; } }
+
+  // ── DATE ─────────────────────────────────────────────────────────────────
+  var today = new Date();
+  var todayKey = today.toISOString().slice(0,10);
+  var DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  var MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  document.getElementById('hdrDate').textContent = 'Shireen · ' + DAYS[today.getDay()] + ', ' + MONTHS[today.getMonth()] + ' ' + today.getDate();
+
+  // ── TABS ─────────────────────────────────────────────────────────────────
+  var tabBar = document.getElementById('tabBar');
+  tabBar.addEventListener('click', function(e) {
+    var btn = e.target;
+    while (btn && btn !== tabBar) {
+      if (btn.hasAttribute('data-tab')) {
+        var id = btn.getAttribute('data-tab');
+        document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
+        document.querySelectorAll('.tab-btn').forEach(function(t) { t.classList.remove('active'); });
+        var page = document.getElementById('page-' + id);
+        if (page) page.classList.add('active');
+        btn.classList.add('active');
+        return;
+      }
+      btn = btn.parentElement;
+    }
+  });
+
+  // ── CHECKLIST ────────────────────────────────────────────────────────────
+  var checkKeys = ['water','vitamins','meals','breathe','move','hydration'];
+  var checks = load('checks_' + todayKey, {});
+
+  function renderChecks() {
+    var done = 0;
+    checkKeys.forEach(function(k) {
+      var cb = document.getElementById('cb-' + k);
+      var cr = document.getElementById('cr-' + k);
+      if (checks[k]) { cb.classList.add('on'); cr.classList.add('done'); done++; }
+      else { cb.classList.remove('on'); cr.classList.remove('done'); }
+    });
+    var pct = Math.round(done / checkKeys.length * 100);
+    document.getElementById('progFill').style.width = pct + '%';
+    document.getElementById('progLbl').textContent = done + ' of ' + checkKeys.length + ' done';
+    document.getElementById('emojiToday').textContent = done === 6 ? '🌟' : done >= 4 ? '💚' : done >= 2 ? '🌿' : '🌱';
+    logDay(done);
+  }
+
+  document.querySelectorAll('.check-row').forEach(function(row) {
+    row.addEventListener('click', function() {
+      var k = row.getAttribute('data-key');
+      checks[k] = !checks[k];
+      save('checks_' + todayKey, checks);
+      renderChecks();
+    });
+  });
+
+  document.getElementById('resetBtn').addEventListener('click', function() {
+    if (confirm('Reset today?')) { checks = {}; save('checks_' + todayKey, checks); renderChecks(); }
+  });
+
+  // ── MOVE CHECKS ──────────────────────────────────────────────────────────
+  var moveChecks = load('mc_' + todayKey, {});
+
+  function renderMoveChecks() {
+    ['stretch','floor','standing','walk'].forEach(function(k) {
+      var el = document.getElementById('mc-' + k);
+      if (el) { moveChecks[k] ? el.classList.add('on') : el.classList.remove('on'); }
+    });
+  }
+
+  document.querySelectorAll('.move-done').forEach(function(row) {
+    row.addEventListener('click', function() {
+      var k = row.getAttribute('data-mkey');
+      moveChecks[k] = !moveChecks[k];
+      save('mc_' + todayKey, moveChecks);
+      renderMoveChecks();
+      if (moveChecks[k]) { checks['move'] = true; save('checks_' + todayKey, checks); renderChecks(); }
+    });
+  });
+
+  // ── BREATHING ────────────────────────────────────────────────────────────
+  var bInterval = null, bPhaseIdx = 0, bCount = 4, bRounds = 0;
+  var bPhases = [
+    {name:'Inhale', cls:'inhale', dur:4},
+    {name:'Hold',   cls:'hold',   dur:4},
+    {name:'Exhale', cls:'exhale', dur:4},
+    {name:'Hold',   cls:'hold',   dur:4}
+  ];
+
+  function runBreath() {
+    var p = bPhases[bPhaseIdx];
+    var c = document.getElementById('breathCircle');
+    c.className = 'breath-circle ' + p.cls;
+    document.getElementById('bPhase').textContent = p.name;
+    document.getElementById('bNum').textContent = bCount;
+    document.getElementById('bRounds').textContent = bRounds > 0 ? 'Round ' + bRounds + ' of 6' : '';
+  }
+
+  function startBreath() {
+    if (bInterval) return;
+    bPhaseIdx = 0; bCount = 4; bRounds = 0;
+    runBreath();
+    bInterval = setInterval(function() {
+      bCount--;
+      if (bCount <= 0) {
+        bPhaseIdx = (bPhaseIdx + 1) % 4;
+        if (bPhaseIdx === 0) bRounds++;
+        bCount = bPhases[bPhaseIdx].dur;
+      }
+      runBreath();
+    }, 1000);
+  }
+
+  function stopBreath() {
+    if (bInterval) { clearInterval(bInterval); bInterval = null; }
+    var c = document.getElementById('breathCircle');
+    c.className = 'breath-circle';
+    document.getElementById('bPhase').textContent = 'Tap to start';
+    document.getElementById('bNum').textContent = '';
+    document.getElementById('bRounds').textContent = '';
+  }
+
+  document.getElementById('breathCircle').addEventListener('click', startBreath);
+  document.getElementById('breathStopBtn').addEventListener('click', stopBreath);
+  document.getElementById('breathDoneBtn').addEventListener('click', function() {
+    stopBreath();
+    checks['breathe'] = true;
+    save('checks_' + todayKey, checks);
+    renderChecks();
+  });
+
+  // ── WALK TIMER ───────────────────────────────────────────────────────────
+  var tSecs = 600, tRunning = false, tInterval = null;
+
+  function updateTimerDisp() {
+    var m = Math.floor(tSecs/60), s = tSecs%60;
+    document.getElementById('timerDisp').textContent = m + ':' + (s < 10 ? '0' : '') + s;
+  }
+
+  document.getElementById('timerStartBtn').addEventListener('click', function() {
+    if (tRunning) {
+      clearInterval(tInterval); tRunning = false;
+      this.textContent = 'Resume';
+      document.getElementById('timerSub').textContent = 'Paused';
+    } else {
+      tRunning = true; this.textContent = 'Pause';
+      document.getElementById('timerSub').textContent = 'Keep going...';
+      tInterval = setInterval(function() {
+        tSecs--;
+        updateTimerDisp();
+        if (tSecs <= 0) {
+          clearInterval(tInterval); tRunning = false;
+          document.getElementById('timerSub').textContent = '✅ 10 minutes done!';
+          document.getElementById('timerStartBtn').textContent = 'Done';
+          moveChecks['walk'] = true; checks['move'] = true;
+          save('mc_' + todayKey, moveChecks); save('checks_' + todayKey, checks);
+          renderChecks(); renderMoveChecks();
+        }
+      }, 1000);
+    }
+  });
+
+  document.getElementById('timerResetBtn').addEventListener('click', function() {
+    clearInterval(tInterval); tRunning = false; tSecs = 600;
+    updateTimerDisp();
+    document.getElementById('timerStartBtn').textContent = 'Start';
+    document.getElementById('timerSub').textContent = 'Tap Start when you step on';
+  });
+
+  // ── LOG ──────────────────────────────────────────────────────────────────
+  function logDay(done) {
+    var log = load('wlog', {});
+    log[todayKey] = done || 0;
+    save('wlog', log);
+    renderLog();
+  }
+
+  function renderLog() {
+    var log = load('wlog', {});
+    var grid = document.getElementById('weekGrid');
+    grid.innerHTML = '';
+    var streak = 0, streakBroken = false;
+    var last7 = [];
+    for (var i = 6; i >= 0; i--) {
+      var d = new Date(); d.setDate(d.getDate() - i); last7.push(d);
+    }
+    last7.forEach(function(d) {
+      var key = d.toISOString().slice(0,10);
+      var isToday = key === todayKey;
+      var count = log[key] || 0;
+      var done = count >= 3;
+      var cell = document.createElement('div');
+      cell.className = 'day-cell';
+      cell.innerHTML = '<div class="day-lbl">' + DAYS[d.getDay()] + '</div><div class="day-dot' + (done?' done':'') + (isToday?' today':'') + '">' + (done?'✓':'') + '</div>';
+      grid.appendChild(cell);
+      if (!streakBroken) { if (done) streak++; else if (!isToday) streakBroken = true; }
+    });
+    document.getElementById('streakNum').textContent = streak;
+    var total = last7.filter(function(d){ return (log[d.toISOString().slice(0,10)]||0)>=3; }).length;
+    var sumEl = document.getElementById('weeklySummary');
+    sumEl.textContent = total === 0 ? 'This is week one. Every day you show up counts.' :
+      total <= 2 ? total + ' out of 7 days with 3+ habits. Progress is progress.' :
+      total <= 4 ? total + ' out of 7 days strong. You\'re building something real.' :
+      total + ' out of 7 days. That\'s consistency. Your body notices this.';
+
+    // Cycle phase
+    var cycleStart = new Date('2026-04-01');
+    var diff = Math.floor((today - cycleStart) / 86400000) % 30;
+    var day = diff + 1;
+    var phEl = document.getElementById('cyclePhase');
+    if (day <= 5) phEl.innerHTML = '<strong style="color:var(--red)">Menstrual · Day ' + day + '</strong><br>Rest is productive. Gentle movement only. Warm foods, iron, extra carbs.';
+    else if (day <= 13) phEl.innerHTML = '<strong style="color:var(--accent)">Follicular · Day ' + day + '</strong><br>Your best energy window. Move, show up, build. Your body is on your side.';
+    else if (day <= 16) phEl.innerHTML = '<strong style="color:var(--yellow)">Ovulation · Day ' + day + '</strong><br>You may feel off or wired. Normal. Passes in 48–72 hours.';
+    else phEl.innerHTML = '<strong style="color:#6C5CE7">Luteal · Day ' + day + '</strong><br>Energy will vary. Carbs are your friend. Magnesium tonight. Be gentle.';
+  }
+
+  // ── SCHEDULE ─────────────────────────────────────────────────────────────
+  function renderSessions() {
+    var sessions = load('sessions', []);
+    var el = document.getElementById('sessionList');
+    if (!sessions.length) { el.textContent = 'No sessions logged yet.'; return; }
+    el.innerHTML = sessions.map(function(s) {
+      return '<div class="session-row"><span>📅 ' + s + '</span><span class="session-del" data-s="' + s.replace(/"/g,'') + '">×</span></div>';
+    }).join('');
+    el.querySelectorAll('.session-del').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var sessions = load('sessions', []);
+        save('sessions', sessions.filter(function(x){ return x !== btn.getAttribute('data-s'); }));
+        renderSessions();
+      });
+    });
+  }
+
+  document.getElementById('addSessionBtn').addEventListener('click', function() {
+    var val = document.getElementById('sessionDate').value;
+    if (!val) return;
+    var d = new Date(val + 'T12:00:00');
+    var lbl = DAYS[d.getDay()] + ', ' + MONTHS[d.getMonth()] + ' ' + d.getDate() + ' ' + d.getFullYear();
+    var sessions = load('sessions', []);
+    if (!sessions.includes(lbl)) { sessions.push(lbl); sessions.sort(); save('sessions', sessions); }
+    document.getElementById('sessionDate').value = '';
+    renderSessions();
+  });
+
+  // ── CHECK-IN ─────────────────────────────────────────────────────────────
+  var ws = new Date(today); ws.setDate(today.getDate() - today.getDay());
+  var we = new Date(ws); we.setDate(ws.getDate() + 6);
+  var ciWeekKey = ws.toISOString().slice(0,10);
+  var ciWeekLbl = MONTHS[ws.getMonth()] + ' ' + ws.getDate() + ' – ' + MONTHS[we.getMonth()] + ' ' + we.getDate();
+  document.getElementById('ciWeekLbl').textContent = ciWeekLbl;
+
+  var ciSelections = {};
+
+  document.querySelectorAll('.feel-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var grp = btn.getAttribute('data-grp');
+      document.querySelectorAll('[data-grp="' + grp + '"]').forEach(function(b) { b.classList.remove('on'); });
+      btn.classList.add('on');
+      ciSelections[grp] = btn.getAttribute('data-val');
+    });
+  });
+
+  document.getElementById('saveCheckinBtn').addEventListener('click', function() {
+    var well = document.getElementById('ciWell').value.trim();
+    var hard = document.getElementById('ciHard').value.trim();
+    var goal = document.getElementById('ciGoal').value.trim();
+    var notes = document.getElementById('ciNotes').value.trim();
+    if (!well && !hard && !goal && !ciSelections.feeling) { alert('Fill in at least one field.'); return; }
+    var checkins = load('checkins', {});
+    checkins[ciWeekKey] = { week: ciWeekLbl, feeling: ciSelections.feeling, energy: ciSelections.energy, sleep: ciSelections.sleep, well: well, hard: hard, goal: goal, notes: notes };
+    save('checkins', checkins);
+    document.getElementById('ciWell').value = '';
+    document.getElementById('ciHard').value = '';
+    document.getElementById('ciGoal').value = '';
+    document.getElementById('ciNotes').value = '';
+    ciSelections = {};
+    document.querySelectorAll('.feel-btn').forEach(function(b) { b.classList.remove('on'); });
+    renderCheckins();
+    alert('Saved! 💚');
+  });
+
+  function renderCheckins() {
+    var checkins = load('checkins', {});
+    var keys = Object.keys(checkins).sort().reverse();
+    var el = document.getElementById('pastCheckins');
+    if (!keys.length) { el.textContent = 'No check-ins saved yet.'; return; }
+    var fe = {rough:'😔',okay:'😐',good:'🙂',great:'😊'};
+    var ee = {low:'🔴',mixed:'🟡',steady:'🟢',high:'⚡'};
+    var se = {poor:'😴',okay:'😐',good:'😌'};
+    el.innerHTML = keys.map(function(k) {
+      var c = checkins[k];
+      var badges = [c.feeling ? (fe[c.feeling]||'') + ' ' + c.feeling : '', c.energy ? (ee[c.energy]||'') + ' energy' : '', c.sleep ? (se[c.sleep]||'') + ' sleep' : ''].filter(Boolean).join(' · ');
+      return '<div class="past-entry">' +
+        '<div class="past-week">📅 ' + c.week + (badges ? ' · ' + badges : '') + '</div>' +
+        (c.well ? '<div class="past-section"><div class="past-section-lbl lbl-green">What went well</div><div class="past-section-txt">' + c.well + '</div></div>' : '') +
+        (c.hard ? '<div class="past-section"><div class="past-section-lbl lbl-red">Challenging</div><div class="past-section-txt">' + c.hard + '</div></div>' : '') +
+        (c.goal ? '<div class="past-section"><div class="past-section-lbl lbl-blue">Goal</div><div class="past-section-txt">' + c.goal + '</div></div>' : '') +
+        (c.notes ? '<div class="past-section"><div class="past-section-lbl" style="color:var(--mid)">Notes</div><div class="past-section-txt">' + c.notes + '</div></div>' : '') +
+        '</div>';
+    }).join('');
+  }
+
+  // ── INIT ─────────────────────────────────────────────────────────────────
+  renderChecks();
+  renderMoveChecks();
+  renderLog();
+  renderSessions();
+  renderCheckins();
+  updateTimerDisp();
+})();
+</script>
+</body>
+</html>
