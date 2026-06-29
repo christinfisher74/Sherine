@@ -708,42 +708,29 @@
   // ── SEND TO CHRISTIN ─────────────────────────────────────────────────────
   function generateSummary(c) {
     if (!c) return;
-    var fe = {rough:'😔 Rough',okay:'😐 Okay',good:'🙂 Good',great:'😊 Really good'};
-    var ee = {low:'🔴 Low',mixed:'🟡 Mixed',steady:'🟢 Steady',high:'⚡ High'};
-    var se = {poor:'😴 Poor',okay:'😐 Okay',good:'😌 Good'};
-    var lines = [
-      '📋 WEEKLY CHECK-IN — ' + c.week,
-      '─────────────────────────',
-      c.feeling ? '💭 Overall: ' + (fe[c.feeling] || c.feeling) : '',
-      c.energy  ? '⚡ Energy: '  + (ee[c.energy]  || c.energy)  : '',
-      c.sleep   ? '😴 Sleep: '   + (se[c.sleep]   || c.sleep)   : '',
-      '',
-      c.well ? '✅ What went well:
-' + c.well : '',
-      '',
-      c.hard ? '💪 Challenging:
-' + c.hard : '',
-      '',
-      c.goal ? '🎯 Goal for next week:
-' + c.goal : '',
-      '',
-      c.notes ? '📝 Notes:
-' + c.notes : '',
-      '',
-      '─────────────────────────',
-      'Sent from my Daily Reset app'
-    ].filter(function(l, i, arr) {
-      // Remove consecutive empty lines
-      if (l === '' && arr[i-1] === '') return false;
-      return l !== undefined;
-    }).join('
-').trim();
-
-    document.getElementById('sendSummary').value = lines;
+    var fe = {rough:'Rough',okay:'Okay',good:'Good',great:'Really good'};
+    var ee = {low:'Low',mixed:'Mixed',steady:'Steady',high:'High'};
+    var se = {poor:'Poor',okay:'Okay',good:'Good'};
+    var parts = [];
+    parts.push('WEEKLY CHECK-IN -- ' + c.week);
+    parts.push('-------------------------');
+    if (c.feeling) parts.push('Overall: ' + (fe[c.feeling] || c.feeling));
+    if (c.energy)  parts.push('Energy: '  + (ee[c.energy]  || c.energy));
+    if (c.sleep)   parts.push('Sleep: '   + (se[c.sleep]   || c.sleep));
+    if (c.well)  { parts.push(''); parts.push('What went well:'); parts.push(c.well); }
+    if (c.hard)  { parts.push(''); parts.push('Challenging:'); parts.push(c.hard); }
+    if (c.goal)  { parts.push(''); parts.push('Goal for next week:'); parts.push(c.goal); }
+    if (c.notes) { parts.push(''); parts.push('Notes:'); parts.push(c.notes); }
+    if (c.pride) { parts.push(''); parts.push('Proud of:'); parts.push(c.pride); }
+    parts.push('');
+    parts.push('-------------------------');
+    parts.push('Sent from my Daily Reset app');
+    document.getElementById('sendSummary').value = parts.join('\n');
     document.getElementById('sendCard').style.display = 'block';
     document.getElementById('copyConfirm').textContent = '';
   }
 
+  
   document.getElementById('copyBtn').addEventListener('click', function() {
     var ta = document.getElementById('sendSummary');
     ta.select();
@@ -777,3 +764,4 @@
 </script>
 </body>
 </html>
+
