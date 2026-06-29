@@ -181,7 +181,7 @@
     </div>
     <div class="check-row" id="cr-move" data-key="move">
       <div class="check-box" id="cb-move"></div>
-      <div class="check-label"><strong>Do one movement</strong><span>Walk, floor work, or stretching. See Move tab. The yard doesn't count 😊</span></div>
+      <div class="check-label"><strong>Do one movement</strong><span>Walk, floor work, or stretching. See Move tab.</span></div>
     </div>
     <div class="check-row" id="cr-hydration" data-key="hydration">
       <div class="check-box" id="cb-hydration"></div>
@@ -265,7 +265,7 @@
   </div>
   <div class="card">
     <div class="card-title">Walking Pad Timer</div>
-    <div class="timer-goal">🎯 Goal: 10 minutes minimum</div>
+    <div class="timer-goal">🎯 Goal: 30 minutes</div>
     <div class="timer-big" id="timerDisp">10:00</div>
     <div class="timer-sub" id="timerSub">Tap Start when you step on</div>
     <div class="btn-row">
@@ -372,7 +372,21 @@
     <label class="fi-label">Anything else on your mind?</label>
     <textarea id="ciNotes" placeholder="Optional. This is just for you." style="margin-bottom:0"></textarea>
 
+    <div style="background:var(--green-light);border-radius:12px;padding:14px;margin-top:14px">
+      <label class="fi-label" style="color:var(--green);margin-bottom:7px">One thing you are proud of or like about yourself this week 💚</label>
+      <p style="font-size:12px;color:var(--mid);margin-bottom:8px;line-height:1.4">This one is just for you. Share it with Christin if you want to — or keep it for yourself. Both are okay.</p>
+      <textarea id="ciPride" placeholder="I am proud of..." style="margin-bottom:0"></textarea>
+    </div>
+
     <button class="btn" id="saveCheckinBtn" style="margin-top:14px">Save Check-In ✓</button>
+  </div>
+
+  <div class="card" id="sendCard" style="display:none">
+    <div class="card-title">Send to Christin 📲</div>
+    <p style="font-size:13px;color:var(--mid);line-height:1.5;margin-bottom:12px">Copy this and paste it into a text to Christin.</p>
+    <textarea id="sendSummary" style="width:100%;padding:12px;border:1.5px solid var(--rule);border-radius:10px;font-size:13px;color:var(--dark);background:var(--bg);min-height:180px;resize:none;font-family:inherit;line-height:1.5;margin-bottom:10px" readonly></textarea>
+    <button class="btn" id="copyBtn">Copy to Clipboard 📋</button>
+    <div id="copyConfirm" style="text-align:center;font-size:13px;color:var(--green);margin-top:8px;min-height:20px"></div>
   </div>
 
   <div class="card">
@@ -517,7 +531,7 @@
   });
 
   // ── WALK TIMER ───────────────────────────────────────────────────────────
-  var tSecs = 600, tRunning = false, tInterval = null;
+  var tSecs = 1800, tRunning = false, tInterval = null;
 
   function updateTimerDisp() {
     var m = Math.floor(tSecs/60), s = tSecs%60;
@@ -548,7 +562,7 @@
   });
 
   document.getElementById('timerResetBtn').addEventListener('click', function() {
-    clearInterval(tInterval); tRunning = false; tSecs = 600;
+    clearInterval(tInterval); tRunning = false; tSecs = 1800;
     updateTimerDisp();
     document.getElementById('timerStartBtn').textContent = 'Start';
     document.getElementById('timerSub').textContent = 'Tap Start when you step on';
@@ -591,7 +605,7 @@
       total + ' out of 7 days. That\'s consistency. Your body notices this.';
 
     // Cycle phase
-    var cycleStart = new Date('2026-04-01');
+    var cycleStart = new Date('2026-05-20');
     var diff = Math.floor((today - cycleStart) / 86400000) % 30;
     var day = diff + 1;
     var phEl = document.getElementById('cyclePhase');
@@ -652,18 +666,21 @@
     var hard = document.getElementById('ciHard').value.trim();
     var goal = document.getElementById('ciGoal').value.trim();
     var notes = document.getElementById('ciNotes').value.trim();
+    var pride = document.getElementById('ciPride').value.trim();
     if (!well && !hard && !goal && !ciSelections.feeling) { alert('Fill in at least one field.'); return; }
     var checkins = load('checkins', {});
-    checkins[ciWeekKey] = { week: ciWeekLbl, feeling: ciSelections.feeling, energy: ciSelections.energy, sleep: ciSelections.sleep, well: well, hard: hard, goal: goal, notes: notes };
+    checkins[ciWeekKey] = { week: ciWeekLbl, feeling: ciSelections.feeling, energy: ciSelections.energy, sleep: ciSelections.sleep, well: well, hard: hard, goal: goal, notes: notes, pride: pride };
     save('checkins', checkins);
     document.getElementById('ciWell').value = '';
     document.getElementById('ciHard').value = '';
     document.getElementById('ciGoal').value = '';
     document.getElementById('ciNotes').value = '';
+    document.getElementById('ciPride').value = '';
     ciSelections = {};
     document.querySelectorAll('.feel-btn').forEach(function(b) { b.classList.remove('on'); });
     renderCheckins();
-    alert('Saved! 💚');
+    generateSummary(checkins[ciWeekKey]);
+    alert('Saved! 💚 Don\'t forget to send it to Christin!');
   });
 
   function renderCheckins() {
@@ -683,9 +700,71 @@
         (c.hard ? '<div class="past-section"><div class="past-section-lbl lbl-red">Challenging</div><div class="past-section-txt">' + c.hard + '</div></div>' : '') +
         (c.goal ? '<div class="past-section"><div class="past-section-lbl lbl-blue">Goal</div><div class="past-section-txt">' + c.goal + '</div></div>' : '') +
         (c.notes ? '<div class="past-section"><div class="past-section-lbl" style="color:var(--mid)">Notes</div><div class="past-section-txt">' + c.notes + '</div></div>' : '') +
+        (c.pride ? '<div class="past-section"><div class="past-section-lbl" style="color:var(--green)">Proud of</div><div class="past-section-txt">' + c.pride + '</div></div>' : '') +
         '</div>';
     }).join('');
   }
+
+  // ── SEND TO CHRISTIN ─────────────────────────────────────────────────────
+  function generateSummary(c) {
+    if (!c) return;
+    var fe = {rough:'😔 Rough',okay:'😐 Okay',good:'🙂 Good',great:'😊 Really good'};
+    var ee = {low:'🔴 Low',mixed:'🟡 Mixed',steady:'🟢 Steady',high:'⚡ High'};
+    var se = {poor:'😴 Poor',okay:'😐 Okay',good:'😌 Good'};
+    var lines = [
+      '📋 WEEKLY CHECK-IN — ' + c.week,
+      '─────────────────────────',
+      c.feeling ? '💭 Overall: ' + (fe[c.feeling] || c.feeling) : '',
+      c.energy  ? '⚡ Energy: '  + (ee[c.energy]  || c.energy)  : '',
+      c.sleep   ? '😴 Sleep: '   + (se[c.sleep]   || c.sleep)   : '',
+      '',
+      c.well ? '✅ What went well:
+' + c.well : '',
+      '',
+      c.hard ? '💪 Challenging:
+' + c.hard : '',
+      '',
+      c.goal ? '🎯 Goal for next week:
+' + c.goal : '',
+      '',
+      c.notes ? '📝 Notes:
+' + c.notes : '',
+      '',
+      '─────────────────────────',
+      'Sent from my Daily Reset app'
+    ].filter(function(l, i, arr) {
+      // Remove consecutive empty lines
+      if (l === '' && arr[i-1] === '') return false;
+      return l !== undefined;
+    }).join('
+').trim();
+
+    document.getElementById('sendSummary').value = lines;
+    document.getElementById('sendCard').style.display = 'block';
+    document.getElementById('copyConfirm').textContent = '';
+  }
+
+  document.getElementById('copyBtn').addEventListener('click', function() {
+    var ta = document.getElementById('sendSummary');
+    ta.select();
+    try {
+      navigator.clipboard.writeText(ta.value).then(function() {
+        document.getElementById('copyConfirm').textContent = 'Copied! Now paste it into a text to Christin 💚';
+      }).catch(function() {
+        document.execCommand('copy');
+        document.getElementById('copyConfirm').textContent = 'Copied! Now paste it into a text to Christin 💚';
+      });
+    } catch(e) {
+      document.execCommand('copy');
+      document.getElementById('copyConfirm').textContent = 'Copied! Now paste it into a text to Christin 💚';
+    }
+  });
+
+  // Show send card if last week already saved
+  (function() {
+    var checkins = load('checkins', {});
+    if (checkins[ciWeekKey]) generateSummary(checkins[ciWeekKey]);
+  })();
 
   // ── INIT ─────────────────────────────────────────────────────────────────
   renderChecks();
